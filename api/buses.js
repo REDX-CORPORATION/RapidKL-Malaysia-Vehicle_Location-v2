@@ -1,0 +1,3 @@
+const {category,dataset,handle}=require('../lib/data');
+const {snapshot}=require('../lib/live');
+module.exports=handle(async(req,res)=>{const c=category(req);const result=await snapshot(c,dataset(c));const buses=req.query.route?result.buses.filter(b=>b.routeId===req.query.route):result.buses;res.setHeader('Cache-Control','public, s-maxage=15, stale-while-revalidate=10');const additionalRoutes=[...new Map(result.buses.filter(b=>/^live:[A-Z0-9-]{1,24}$/.test(b.routeId)).map(b=>[b.routeId,{id:b.routeId,number:b.routeNumber,name:'Route '+b.routeNumber+' · vehicle feed',stopCount:null,dynamic:true}])).values()];res.json({...result,buses,count:buses.length,additionalRoutes});});

@@ -1,0 +1,3 @@
+const {category,dataset,handle}=require('../lib/data');
+const {enrich}=require('../lib/kiosk-route');
+module.exports=handle(async(req,res)=>{const data=dataset(category(req));let route=data.routes.find(r=>r.id===req.query.route);if(!route&&/^live:[A-Z0-9-]{1,24}$/.test(req.query.route||'')){const number=req.query.route.slice(5);route={id:req.query.route,number,name:'Route '+number,directions:[]};}if(!route)return res.status(404).json({error:'Route not found'});route=await enrich(route);res.setHeader('Cache-Control','public, s-maxage=300');res.json({...route,generatedAt:route.generatedAt||data.generatedAt});});
