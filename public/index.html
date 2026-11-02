@@ -1,268 +1,217 @@
 <!doctype html>
+<!--
+  jomnaik — live bus tracker for RapidKL, Rapid Penang & Rapid Kuantan
+  Built by Red-X Corporation (jitu)
+  Map data © OpenStreetMap contributors · Leaflet · Fonts: Figtree, Doto (SIL OFL)
+  Independent project. Not affiliated with or endorsed by Prasarana Malaysia Berhad / myRapid.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#163e32">
-<meta name="description" content="Find your route. Follow your bus. JomNaik maps Malaysia’s Rapid bus routes, stops and live vehicle locations.">
-<title>JomNaik — Your city, one bus away.</title>
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<title>jomnaik · Live bus tracker for Klang Valley, Penang &amp; Kuantan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="description" content="Type a bus number and see where it is right now, plus every stop on its route. Live RapidKL, Rapid Penang and Rapid Kuantan buses on OpenStreetMap.">
+<meta name="author" content="Red-X Corporation (jitu)">
+<meta name="application-name" content="jomnaik">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1626" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="jomnaik">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="jomnaik">
+<meta property="og:title" content="jomnaik · Where's my bus?">
+<meta property="og:description" content="Type a bus number. See where it is right now and where it goes. Live RapidKL, Rapid Penang and Rapid Kuantan buses.">
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/doto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="/style.css">
-<script defer src="/vendor/leaflet/leaflet.js"></script>
-<script defer src="/config.js"></script>
-<script defer src="/app.js"></script>
+<link rel="stylesheet" href="/css/app.css">
+<script src="/js/theme-boot.js"></script>
 </head>
-
 <body>
 
-<header>
-    <a class="brand" href="/" aria-label="JomNaik home">
-        <span class="brand-icon">↗</span>jom<span>naik</span><i></i>
-    </a>
+<!-- Icon sprite -->
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5M5 12v6a3 3 0 003 3h8a3 3 0 003-3v-6"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 16.5l9 5 9-5" opacity=".55"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M7 3h10a3 3 0 013 3v9.2a2 2 0 01-1 1.75V19.5a1 1 0 01-1 1h-1a1 1 0 01-1-1V18H8v1.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-2.55a2 2 0 01-1-1.75V6a3 3 0 013-3zM6.5 6v5h11V6h-11zM8.6 15.9a1.15 1.15 0 100-2.3 1.15 1.15 0 000 2.3zm6.8 0a1.15 1.15 0 100-2.3 1.15 1.15 0 000 2.3z"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></symbol>
+  </defs>
+</svg>
 
-    <span class="header-tag">A little less waiting. A lot more going.</span>
+<h1 class="sr-only">jomnaik: live bus tracker for RapidKL, Rapid Penang and Rapid Kuantan</h1>
 
-    <div class="header-actions">
-        <span class="region-dot"></span>
-        <span>Malaysia</span>
-        <button id="about" class="quiet">About & credits <span>↗</span></button>
+<div id="map" role="application" aria-label="Map showing live bus locations"></div>
+
+<div id="status" class="status" data-state="loading" role="status" aria-live="polite">
+  <span class="live-dot" aria-hidden="true"></span>
+  <span id="status-text">Connecting…</span>
+</div>
+
+<aside id="panel" class="panel" aria-label="Find a bus" data-state="peek">
+  <button id="grab" class="grab" type="button" aria-label="Expand or collapse the panel"><span></span></button>
+
+  <div class="p-top">
+    <header id="head-home" class="p-head">
+      <a class="brand" href="/" aria-label="jomnaik home">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="9" fill="#17110A"/>
+          <g fill="#FFB21A"><circle cx="16" cy="6.5" r="1.8"/><circle cx="11.5" cy="11" r="1.8"/><circle cx="16" cy="11" r="1.8"/><circle cx="20.5" cy="11" r="1.8"/><circle cx="7" cy="15.5" r="1.8"/><circle cx="11.5" cy="15.5" r="1.8"/><circle cx="16" cy="15.5" r="1.8"/><circle cx="20.5" cy="15.5" r="1.8"/><circle cx="25" cy="15.5" r="1.8"/><circle cx="16" cy="20.5" r="1.8"/><circle cx="16" cy="25.5" r="1.8"/></g>
+        </svg>
+        <span>jomnaik</span>
+      </a>
+      <div class="spacer"></div>
+      <div class="menu-wrap">
+        <button id="region-btn" class="pill" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="region-menu">
+          <span id="region-name">Klang Valley</span>
+          <svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>
+        </button>
+        <div id="region-menu" class="menu" role="listbox" aria-label="Choose a city" hidden></div>
+      </div>
+      <button id="about-btn" class="icon-btn" type="button" aria-label="About jomnaik and credits">
+        <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
+      </button>
+    </header>
+
+    <header id="head-route" class="p-head" hidden>
+      <button id="back-btn" class="icon-btn" type="button" aria-label="Back to all routes">
+        <svg class="ic" aria-hidden="true"><use href="#i-back"/></svg>
+      </button>
+      <h2 id="route-title" class="route-title">Route</h2>
+      <div class="spacer"></div>
+      <button id="share-btn" class="icon-btn" type="button" aria-label="Share this route">
+        <svg class="ic" aria-hidden="true"><use href="#i-share"/></svg>
+      </button>
+    </header>
+
+    <div class="search" role="search">
+      <svg class="ic lead" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="q" type="text" role="combobox" aria-label="Search bus number or place"
+             aria-expanded="false" aria-controls="results" aria-autocomplete="list"
+             autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"
+             enterkeyhint="search" placeholder="Bus number, e.g. 750">
+      <button id="q-clear" class="clear" type="button" aria-label="Clear search" hidden>
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
     </div>
-</header>
 
-<main>
-
-<nav class="rail" aria-label="Main navigation">
-    <button id="explore" class="rail-button active" title="Explore routes" aria-label="Explore routes">⌖<small>Explore</small></button>
-    <button id="saved" class="rail-button" title="Saved routes" aria-label="Saved routes">☆<small>Saved</small></button>
-    <div class="rail-bottom">MY<br><span>↗</span></div>
-</nav>
-
-<aside class="sidebar">
-
-    <div class="intro">
-        <div class="eyebrow">LET’S GET YOU THERE</div>
-        <h1>Your city,<br> one bus away<span>.</span></h1>
-        <p>Find your route. Follow your bus.</p>
+    <div id="led" class="led" role="img" aria-label="">
+      <span id="led-no" class="led-no"></span>
+      <span class="led-win"><span id="led-track" class="led-track"></span></span>
     </div>
+  </div>
 
-    <div class="network-field">
-        <label for="network">YOUR NETWORK</label>
-        <select id="network">
-            <option value="rapid-bus-kl">RapidKL + MRT Feeder</option>
-            <option value="rapid-bus-penang">Rapid Penang</option>
-        </select>
-    </div>
-
-    <div class="search-box">
-        <span aria-hidden="true">⌕</span>
-        <input id="search" type="search" placeholder="Route number or destination" aria-label="Search route number or destination">
-        <kbd>/</kbd>
-    </div>
-
-    <div id="browse">
-        <div class="section-label">
-            <h2 id="list-title">Explore routes</h2>
-            <span id="route-count">Loading…</span>
+  <div id="body" class="p-body">
+    <section id="v-home" aria-label="Routes">
+      <div id="recent" class="block" hidden>
+        <h2 class="h">Recent</h2>
+        <div id="recent-chips" class="chips"></div>
+      </div>
+      <ul id="results" class="list" role="listbox" aria-label="Matching routes" hidden></ul>
+      <div id="browse">
+        <div class="list-head">
+          <h2 class="h">All routes <span id="route-count" class="n"></span></h2>
+          <div id="kind-seg" class="seg" role="group" aria-label="Filter routes" hidden></div>
         </div>
-
-        <div id="routes" class="route-list" aria-live="polite">
-            <p class="empty">Finding your routes…</p>
-        </div>
-    </div>
-
-    <section id="detail" hidden>
-        <button class="back" id="back">← All routes</button>
-
-        <div class="detail-top">
-            <span id="route-badge" class="route-badge"></span>
-            <button id="favorite" class="icon-button" aria-label="Save route">☆</button>
-            <button id="share" class="icon-button" aria-label="Copy route link">↗</button>
-        </div>
-
-        <h2 id="route-name"></h2>
-
-        <label class="sr-only" for="direction">Travel direction</label>
-        <select id="direction"></select>
-
-        <div class="tabs" role="tablist">
-            <button id="stops-tab" role="tab" aria-selected="true">Route stops <span id="stop-count">0</span></button>
-            <button id="buses-tab" role="tab" aria-selected="false">Buses <span id="bus-count">0</span></button>
-        </div>
-
-        <div class="vehicle-filters">
-            <label><input id="recent-only" type="checkbox"> Recent GPS only</label>
-            <label><input id="direction-only" type="checkbox"> Selected direction only</label>
-        </div>
-
-        <p id="vehicle-summary" class="vehicle-summary"></p>
-
-        <a id="official-route" class="official-route" hidden target="_blank" rel="noopener">Open official kiosk ↗</a>
-
-        <div id="stops" class="stop-list" role="tabpanel"></div>
-        <div id="bus-list" class="bus-list" role="tabpanel" hidden></div>
-
-        <p class="data-note" id="data-note"></p>
+        <div id="route-list" class="list"></div>
+        <p id="route-list-note" class="note" hidden></p>
+      </div>
     </section>
 
-    <div class="sidebar-foot">
-        <span class="tiny-mark">↗</span>
-        <div>
-            Developed by <strong>Mohtasim Jitu </strong>
-            <small>Independent tracker. Made for the everyday journey.</small>
-        </div>
-    </div>
+    <section id="v-route" aria-label="Route details" hidden>
+      <p id="route-sub" class="route-sub"></p>
+      <div class="tabs" role="tablist" aria-label="Route details">
+        <button id="tab-buses" class="tab" type="button" role="tab" aria-selected="true" aria-controls="pane-buses">Buses <span id="n-buses" class="n">0</span></button>
+        <button id="tab-stops" class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-stops" tabindex="-1">Stops <span id="n-stops" class="n">0</span></button>
+      </div>
+      <div id="pane-buses" role="tabpanel" aria-labelledby="tab-buses">
+        <div id="bus-list" class="list buses"></div>
+        <div id="bus-empty" class="empty" hidden></div>
+      </div>
+      <div id="pane-stops" role="tabpanel" aria-labelledby="tab-stops" hidden>
+        <div id="near-you" class="near-you" hidden></div>
+        <div id="dir-seg" class="seg wide" role="group" aria-label="Direction" hidden></div>
+        <ol id="stop-list" class="stops"></ol>
+        <p id="stops-note" class="note"></p>
+      </div>
+    </section>
+  </div>
 
+  <footer class="p-foot">
+    <span>Built by <button id="credit-btn" class="linklike" type="button">Red-X Corporation (jitu)</button></span>
+    <span class="dim">Unofficial · live data may lag</span>
+  </footer>
 </aside>
 
-<section class="map-area" aria-label="Interactive bus map">
+<div id="map-ui" class="map-ui">
+  <div class="fab-stack">
+    <button id="locate-btn" class="fab" type="button" aria-label="Show my location" title="Show my location">
+      <svg class="ic" aria-hidden="true"><use href="#i-locate"/></svg>
+    </button>
+    <div class="menu-wrap">
+      <button id="style-btn" class="fab" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="style-menu" aria-label="Appearance" title="Appearance">
+        <svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>
+      </button>
+      <div id="style-menu" class="menu left" role="menu" aria-label="Appearance" hidden></div>
+    </div>
+  </div>
+  <div class="fab-stack zoom">
+    <button id="zoom-in" class="fab" type="button" aria-label="Zoom in" title="Zoom in"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
+    <button id="zoom-out" class="fab" type="button" aria-label="Zoom out" title="Zoom out"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
+  </div>
+</div>
 
-    <div id="map"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-    <div class="map-top">
-        <div class="map-title">
-            <span class="live-dot" id="live-dot"></span>
-            <div>
-                <strong id="map-heading">Klang Valley</strong>
-                <small id="status" role="status">Connecting to the bus network…</small>
-            </div>
-        </div>
-
-        <button id="refresh" class="map-button" title="Refresh bus positions" aria-label="Refresh bus positions">↻</button>
+<dialog id="about" aria-labelledby="about-title">
+  <div class="about">
+    <div class="about-head">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="#17110A"/>
+        <g fill="#FFB21A"><circle cx="16" cy="6.5" r="1.8"/><circle cx="11.5" cy="11" r="1.8"/><circle cx="16" cy="11" r="1.8"/><circle cx="20.5" cy="11" r="1.8"/><circle cx="7" cy="15.5" r="1.8"/><circle cx="11.5" cy="15.5" r="1.8"/><circle cx="16" cy="15.5" r="1.8"/><circle cx="20.5" cy="15.5" r="1.8"/><circle cx="25" cy="15.5" r="1.8"/><circle cx="16" cy="20.5" r="1.8"/><circle cx="16" cy="25.5" r="1.8"/></g>
+      </svg>
+      <div>
+        <h2 id="about-title">jomnaik</h2>
+        <p class="dim">Jom naik: let’s board. Version <span id="app-version"></span></p>
+      </div>
+      <button id="about-close" class="icon-btn" type="button" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
 
-    <div id="notice" class="notice" role="status" hidden></div>
+    <p class="about-credit">Built by <strong>Red-X Corporation (jitu)</strong></p>
 
-    <div class="map-tools">
-        <button id="locate" class="map-button" title="Show my location" aria-label="Show my location">⌖</button>
-        <button id="fit" class="map-button" title="Fit route or buses to map" aria-label="Fit route or buses to map">⛶</button>
-    </div>
+    <h3>Data and map credits</h3>
+    <ul class="credits">
+      <li><b>Live bus positions</b> from Prasarana Malaysia Berhad: the myRapid bus kiosk feed and the official GTFS Realtime vehicle positions on <a href="https://data.gov.my" target="_blank" rel="noopener noreferrer">data.gov.my</a>.</li>
+      <li><b>Routes, stops and road shapes</b> from Prasarana’s GTFS Static feed on data.gov.my (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>), compiled and simplified for this app. Compiling approach from <a href="https://github.com/mohdsyahid/rapidkl-malaysia" target="_blank" rel="noopener noreferrer">mohdsyahid/rapidkl-malaysia</a> (MIT).</li>
+      <li><b>Map and road data</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL). Where a route has no official shape, its line is traced along roads with <a href="https://project-osrm.org" target="_blank" rel="noopener noreferrer">OSRM</a>.</li>
+      <li><b>Map engine</b> <a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer">Leaflet</a> (BSD-2-Clause). <b>GTFS Realtime decoder</b> © Google, MobilityData (Apache-2.0). <b>Fonts</b> Figtree and Doto (SIL Open Font License).</li>
+    </ul>
 
-    <div class="map-bottom">
-        <div class="legend">
-            <span><i class="legend-bus"></i> Bus location</span>
-            <span><i class="legend-stop"></i> Bus stop</span>
-            <span id="line-legend"><i class="legend-line"></i> Route</span>
-        </div>
-
-        <div class="map-tip" id="map-tip">
-            <strong>Where are we heading?</strong>
-            <span>Choose a route to see its stops and buses.</span>
-            <span class="tip-arrow">↗</span>
-        </div>
-    </div>
-
-    <button id="mobile-toggle">Explore routes <span>↑</span></button>
-
-</section>
-
-</main>
-
-<!-- About & Credits -->
-<dialog id="about-dialog">
-
-    <button id="close-about" class="dialog-close" aria-label="Close credits">×</button>
-
-    <div class="eyebrow">THE PEOPLE & DATA BEHIND THE JOURNEY</div>
-
-    <h2>Let’s go, together<span>.</span></h2>
-
-    <p>
-        Developed by <strong>Mohtasim Jitu</strong><br>
-        Founder of <strong>Red-X Corporation</strong>
-    </p>
-
-    <!-- Developer Social Links -->
-    <div style="display:flex;align-items:center;gap:14px;margin:12px 0 20px;">
-
-        <!-- Instagram -->
-        <a href="https://instagram.com/mohtasimjitu"
-           target="_blank"
-           rel="noopener noreferrer"
-           aria-label="Instagram"
-           style="color:inherit;display:inline-flex;">
-
-            <svg width="20" height="20" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="5"/>
-                <circle cx="12" cy="12" r="4"/>
-                <circle cx="18" cy="6" r="1" fill="currentColor" stroke="none"/>
-            </svg>
-        </a>
-
-        <!-- Facebook -->
-        <a href="https://facebook.com/mohtasimjitu"
-           target="_blank"
-           rel="noopener noreferrer"
-           aria-label="Facebook"
-           style="color:inherit;display:inline-flex;">
-
-            <svg width="20" height="20" viewBox="0 0 24 24"
-                 fill="currentColor">
-                <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.3-1.5 1.6-1.5h1.7V3.7c-.3 0-1.4-.1-2.6-.1-2.6 0-4.4 1.6-4.4 4.5v1.8H7v3.1h2.8v8z"/>
-            </svg>
-        </a>
-
-        <!-- GitHub -->
-        <a href="https://github.com/mohtasimjitu"
-           target="_blank"
-           rel="noopener noreferrer"
-           aria-label="GitHub"
-           style="color:inherit;display:inline-flex;">
-
-            <svg width="20" height="20" viewBox="0 0 24 24"
-                 fill="currentColor">
-                <path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.75-1.32-3.75-1.32-.5-1.28-1.24-1.62-1.24-1.62-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 .1.76 2.21 3.38 1.57.1-.73.4-1.23.7-1.52-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.14-1.45 3.08-1.15 3.08-1.15.61 1.54.23 2.68.12 2.96.72.78 1.15 1.78 1.15 3 0 4.29-2.61 5.23-5.1 5.51.4.34.76 1 .76 2.01v2.98c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8z"/>
-            </svg>
-        </a>
-
-    </div>
-
-    <p>JomNaik is an independent community bus tracker, not an official Prasarana or Rapid service.</p>
-
-    <dl>
-
-        <dt>Transit data</dt>
-        <dd>
-            <a href="https://developer.data.gov.my/realtime-api/gtfs-realtime" target="_blank" rel="noreferrer">Prasarana / data.gov.my ↗</a>
-            · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
-            GTFS data is transformed into routes, stop sequences and vehicle markers.
-        </dd>
-
-        <dt>Project reference</dt>
-        <dd>
-            <a href="https://github.com/mohdsyahid/rapidkl-malaysia" target="_blank" rel="noreferrer">Mohd Syahid · rapidkl-malaysia ↗</a>
-            (MIT). Route-data approach and inspiration.
-        </dd>
-
-        <dt>Official kiosk reference</dt>
-        <dd>
-            <a href="https://myrapidbus.prasarana.com.my/kiosk" target="_blank" rel="noreferrer">myRapid Bus Kiosk ↗</a>
-        </dd>
-
-        <dt>Maps & software</dt>
-        <dd>
-            <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>
-            · <a href="https://leafletjs.com">Leaflet</a>.
-            <a href="https://www.openstreetmap.org/fixthemap">Report a map issue ↗</a>
-        </dd>
-
-    </dl>
-
-    <p class="small">
-        Positions use the myRapid kiosk with government GTFS feeds as additional sources.
-        Positions refresh every 20 seconds while this page is visible.
-        GPS data can be delayed or unavailable.
-        No predicted arrival times are provided.
-        A vehicle position does not guarantee that a bus is in passenger service.
-        Saved routes stay on this device.
-        Your location is only requested when you tap the location button and is not sent to our server.
-        Map tiles are requested from OpenStreetMap.
-    </p>
-
+    <p class="fine">jomnaik is an independent project. It is not affiliated with, or endorsed by, Prasarana Malaysia Berhad, RapidKL or any bus operator. Positions come from bus GPS and can be delayed or missing. Always check official channels for service changes.</p>
+  </div>
 </dialog>
 
-<div id="toast" role="status" hidden></div>
+<noscript><p class="noscript">jomnaik needs JavaScript to show the live map.</p></noscript>
 
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script type="module" src="/js/main.js"></script>
 </body>
 </html>
