@@ -1,1 +1,25 @@
-{"name":"jomnaik","version":"2.1.0","private":true,"engines":{"node":"22.x"},"scripts":{"dev":"node dev.js","build":"node scripts/build.js","refresh-data":"node scripts/refresh-data.js","test":"node --test","refresh-t568":"node scripts/refresh-t568.js"},"dependencies":{"adm-zip":"0.6.1","csv-parse":"7.0.3","express":"4.22.3","leaflet":"1.9.4","protobufjs":"8.8.1"}}
+{
+  "name": "jomnaik",
+  "version": "2.2.0",
+  "description": "Live bus tracker for RapidKL, Rapid Penang and Rapid Kuantan. Search a bus number, see where it is and where it goes.",
+  "private": true,
+  "author": "Red-X Corporation (jitu)",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "node dev.js",
+    "data": "node scripts/build-data.mjs",
+    "refresh-data": "node scripts/refresh-data.js && node scripts/build-data.mjs",
+    "test": "node --test test/*.test.js",
+    "vercel-dev": "vercel dev"
+  },
+  "devDependencies": {
+    "adm-zip": "^0.6.1",
+    "csv-parse": "^7.0.3",
+    "express": "^4.19.2"
+  },
+  "dependencies": {
+    "protobufjs": "^8.8.1"
+  }
+}

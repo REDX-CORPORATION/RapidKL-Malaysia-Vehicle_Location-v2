@@ -1,3 +1,19 @@
-const {category,dataset,handle}=require('../lib/data');
-const {enrich}=require('../lib/kiosk-route');
-module.exports=handle(async(req,res)=>{const data=dataset(category(req));let route=data.routes.find(r=>r.id===req.query.route);if(!route&&/^live:[A-Z0-9-]{1,24}$/.test(req.query.route||'')){const number=req.query.route.slice(5);route={id:req.query.route,number,name:'Route '+number,directions:[]};}if(!route)return res.status(404).json({error:'Route not found'});route=await enrich(route);res.setHeader('Cache-Control','public, s-maxage=300');res.json({...route,generatedAt:route.generatedAt||data.generatedAt});});
+const { getShapes } = require('../lib/kiosk');
+const v = require('../lib/validate');
+
+module.exports = async function handler(req, res) {
+  const provider = v.provider(req.query.provider);
+  const route = v.routeId(req.query.route);
+  if (!provider) return res.status(400).json({ error: 'unknown provider' });
+  if (!route) return res.status(400).json({ error: 'route (numeric kiosk id) required' });
+  try {
+    const { value } = await getShapes(provider, route);
+    const empty = !Object.keys(value.shapes || {}).length && !(value.stops || []).length;
+    // An "empty" parse usually means a challenge page or a layout change: don't let it stick for an hour.
+    res.setHeader('cache-control', empty ? 'public, s-maxage=60' : 's-maxage=3600, stale-while-revalidate=600');
+    res.status(200).json(value);
+  } catch (e) {
+    res.setHeader('cache-control', 'no-store');
+    res.status(200).json({ shapes: {}, latlngs: {}, stops: [], error: e.message });
+  }
+};
